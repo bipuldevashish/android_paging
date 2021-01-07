@@ -17,6 +17,9 @@
 package com.example.android.codelabs.paging.data
 
 import android.util.Log
+import androidx.paging.Pager
+import androidx.paging.PagingConfig
+import androidx.paging.liveData
 import com.example.android.codelabs.paging.api.GithubService
 import com.example.android.codelabs.paging.api.IN_QUALIFIER
 import com.example.android.codelabs.paging.model.Repo
@@ -60,12 +63,16 @@ class GithubRepository(private val service: GithubService) {
         return searchResults
     }
 
-    suspend fun requestMore(query: String) {
-        if (isRequestInProgress) return
-        val successful = requestAndSaveData(query)
-        if (successful) {
-            lastRequestedPage++
-        }
+    fun requestMore(query: String) {
+      Pager(
+              config = PagingConfig(
+                      pageSize = NETWORK_PAGE_SIZE,
+                      maxSize = 100,
+                      enablePlaceholders = false
+              ),
+              pagingSourceFactory = {
+                  GithubPagingSource(service, query) }
+      ).liveData
     }
 
     suspend fun retry(query: String) {
